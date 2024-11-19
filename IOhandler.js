@@ -13,27 +13,21 @@ const yauzl = require("yauzl-promise");
 const unzip = async (pathIn, pathOut) => {
   const unzippedDir = path.join(pathOut, "unzipped");
 
-  // Create the 'unzipped' directory if it doesn't exist
   await fs.promises.mkdir(unzippedDir, { recursive: true });
 
   try {
-    // Open the zip file
     const zipFile = await yauzl.open(pathIn);
 
-    // Loop through all entries in the zip file
     for (const entry of await zipFile.readEntries()) {
       const entryPath = path.join(unzippedDir, entry.fileName);
 
       if (entry.fileName.endsWith("/")) {
-        // It's a directory, so create it
         await fs.promises.mkdir(entryPath, { recursive: true });
       } else {
-        // It's a file, so extract it
         const readStream = await entry.openReadStream();
         await fs.promises.mkdir(path.dirname(entryPath), { recursive: true });
         const writeStream = fs.createWriteStream(entryPath);
 
-        // Pipe the stream and wait for it to finish
         await new Promise((resolve, reject) => {
           readStream.pipe(writeStream);
           readStream.on("end", resolve);
